@@ -1,4 +1,4 @@
-# reactivechat - Simple chat app, for training Reactive Streams
+# reactivechatt - Simple chat app, for training Reactive Streams
 It's a reactive application with Mongo and Spring Reactive Web with web client in vanilla JavaScript.
 It runs, assuming there is running Mongo docker container.
 # Mappings:
