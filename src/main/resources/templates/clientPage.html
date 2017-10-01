@@ -1,0 +1,112 @@
+<html>
+    <head>
+        <script type="text/javascript">
+
+            function time(s) {
+                return new Date(s).toLocaleTimeString();
+            }
+            function init() {
+                var messages = document.getElementById("messages");
+                var message = document.getElementById("message");
+                var nickName = document.getElementById("nickName");
+                var room = document.getElementById("room");
+                var roomId = "";
+            }
+            function messageEventListener(event) {
+                var data = JSON.parse(event.data);
+                var newMessage = "<div>" +
+                    "<h3>" + data.message + "</h3>" +
+                    "<div>By " + data.userName +", " + time(data.date) +"</div>" +
+                    "</div>";
+                messages.innerHTML += newMessage;
+            }
+
+            function onopen(e) {
+                console.log("OPEN", JSON.stringify(e));
+            }
+
+            function onerror(e) {
+                console.error(e);
+            }
+
+            var source;
+
+            function createSSE() {
+                var newRoomId = room.value;
+                if (!newRoomId) {
+                    console.error("No room!");
+                    return;
+                }
+                roomId = newRoomId;
+                removeSSEConnection();
+                messages.innerHTML = "";
+                source = new EventSource(getUrl());
+                source.onmessage = messageEventListener;
+                source.onerror = onerror;
+                source.onopen = onopen;
+            }
+
+            function removeSSEConnection() {
+                if (source) source.close();
+            }
+
+            function sendMessage() {
+                if (!validateSendingMessage()) {
+                    return;
+                }
+                var messageToSend = {
+                    userName: nickName.value,
+                    message: message.value
+                };
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", getUrl(), true);
+                xhr.setRequestHeader("Content-type", "application/json");
+                //no error handling
+                var data = JSON.stringify(messageToSend);
+                xhr.send(data);
+            }
+
+            function validateSendingMessage() {
+                if (!roomId) {
+                    console.error("no room id!");
+                    return false;
+                }
+                if (!nickName.value) {
+                    console.error("no nick name!");
+                    return false;
+                }
+                if (!message.value) {
+                    console.error("no message!");
+                    return false;
+                }
+                return true;
+            }
+
+            function getUrl() {
+                return encodeURI("http://localhost:8080/room/" + roomId);
+            }
+
+            source = new EventSource("http://localhost:8080/ex");
+        </script>
+    </head>
+    <body onload="init()" onunload="removeSSEConnection()">
+
+    <div>
+        <input type="text" id="room" size="20"/>
+        <button onclick="createSSE()">Connect to room</button>
+    </div>
+        <input type="text" id="nickName" size="20"/>My nick name
+    </div>
+
+    <div>
+        <textarea  id="message" size="20"></textarea>
+    </div>
+
+    <div>
+        <button onclick="sendMessage()">Tell</button>
+    </div>
+
+    <div id="messages"/>
+
+    </body>
+</html>
